@@ -1,36 +1,27 @@
-from typing import List, Optional
+from abc import ABC
+from typing import List, Optional, Tuple
 
 
-class Rule(object):
-    def __init__(
-        self, 
-        premise: str, 
-        pos: float, 
-        axis: str, 
-        symbs: List[str],
-        label: Optional[str] = None
-    ) -> None:
-        
-        self.premise = premise
-        self.pos = pos
-        self.axis = axis
-        self.symbs = symbs
-
+class Rule(ABC):
+    def __init__(self, label: Optional[str] = None, rule_type: Optional[str] = None) -> None:
         self.label = label
+        self.rule_type = rule_type
 
-
-    def __str__(self):
+    def __str__(self) -> str:
         return self.label
 
         
 class SplitRule(Rule):
-    def __init__(
-        self, 
-        premise: str, 
-        pos: float, 
-        axis: str, 
-        symbs: List[str]
-    ) -> None:
+    def __init__(self, 
+                 premise: str, 
+                 r1: Tuple[float, float], 
+                 r2: Tuple[float, float],  
+                 symbs: List[str]
+                 ) -> None:
         
-        super().__init__(premise, pos, axis, symbs)
-        self.label = f"split$_{{{self.axis}, {self.pos}}}$({', '.join(symbs)})"
+        self.premise = premise
+        self.r1 = r1
+        self.r2 = r2
+        self.symbs = symbs
+
+        self.label = f"split {r1} {r2} {' '.join(symbs)})"

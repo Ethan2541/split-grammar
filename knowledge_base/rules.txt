@@ -1,6 +1,8 @@
-START ::- 0.5V FACADE FACADE
-FACADE ::- 0.5V FACADE FACADE
-FACADE ::- 0.6H FACADE FACADE
-FACADE ::- 0.5V WALL WALL
-FACADE ::- 0.2H FACADE FACADE
-WALL ::- 0.7V WALL WINDOW | 0.3V WINDOW WALL
+START ::- split (0.5, 0) (0.5, 1) FACADE FACADE
+
+FACADE ::- split (0.5, 0) (0.5, 1) FACADE FACADE
+FACADE ::- split (0, 0.6) (1, 0.6) FACADE FACADE
+FACADE ::- split (0.5, 0) (0.5, 1) WALL WALL
+FACADE ::- split (0, 0.2) (1, 0.2) FACADE FACADE
+
+WALL ::- split (0.7, 0) (0.7, 1) wall window | split (0.3, 0) (0.3, 1) window wall

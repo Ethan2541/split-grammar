@@ -1,29 +1,27 @@
-from .rules import SplitRule
+from .rules import Rule, SplitRule
 
 from typing import List, Set
 
 import os
+import re
 
 
 class Parser(object):
-    def __init__(
-        self, 
-        dir: str, 
-        filename: str
-    ) -> None:
-        
+    def __init__(self, dir: str, filename: str) -> None:
         self.dir = dir
         self.filename = filename
         self.path = os.path.join(self.dir, self.filename)
 
         self.IMPLY = "::-"
-        self.AND = ","
+        self.AND = " "
         self.OR = "|"
+
+        assert self.check_rules_integrity(), "Invalid rule syntax"
 
 
     def check_rules_integrity(self):
         with open(self.path, "r") as file:
-            stripped_lines = [line.rstrip("\n") for line in file]
+            stripped_lines = [line.rstrip("\n") for line in file if line.strip()]
 
         for line in stripped_lines:
             if self.IMPLY not in line:
@@ -39,20 +37,21 @@ class Parser(object):
             
 
     def parse_terminals(self) -> Set[str]:
+        # TODO: support AND operator in symbols splitting
         with open(self.path, "r") as file:
-            stripped_lines = [line.rstrip("\n") for line in file]
+            stripped_lines = [line.rstrip("\n") for line in file if line.strip()]
 
         terminals = set()
         for line in stripped_lines:
             _, conclusion = line.split(self.IMPLY)  # Terminals do not appear in premises
-            symbols = conclusion.split(self.AND)
+            symbols = conclusion.split()
+            print(symbols)
             terminals.update([s.strip() for s in symbols if s.strip().islower()])
 
         return terminals
 
     
     def parse_rules(self) -> List[Rule]:
-        # TODO: initial symbol?
         # TODO: should p_r be common for duplicated rules (with "|")?
         # TODO: determine whether conversion or split rule
         # TODO: support for AND symbol in syntax
@@ -62,10 +61,14 @@ class Parser(object):
         for rule in expanded_rules:
             premise, conclusion = rule.split(self.IMPLY)
 
-            predicate, *symbols = conclusion.split()
-            position, axis = float(predicate.strip()[:-1]), predicate.strip()[-1]
+            pattern = r"\((\d+\.?\d*),\s*(\d+\.?\d*)\)\s*\((\d+\.?\d*),\s*(\d+\.?\d*)\)\s*(\w+)\s*(\w+)"
+            match = re.search(pattern, conclusion)
+            if match:
+                r1 = (float(match.group(1)), float(match.group(2)))
+                r2 = (float(match.group(3)), float(match.group(4)))
+                symbols = [match.group(5), match.group(6)]
 
-            new_rule = SplitRule(premise.strip(), position, axis, [s.strip() for s in symbols])
+            new_rule = SplitRule(premise.strip(), r1, r2, [s.strip() for s in symbols])
             rules.append(new_rule)
 
         return rules
@@ -73,7 +76,7 @@ class Parser(object):
 
     def rule_expansion(self) -> List[str]:
         with open(self.path, "r") as file:
-            stripped_lines = [line.rstrip("\n") for line in file]
+            stripped_lines = [line.rstrip("\n") for line in file if line.strip()]
 
         rules = []
         for line in stripped_lines:
